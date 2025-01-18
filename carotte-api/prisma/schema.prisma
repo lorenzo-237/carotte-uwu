@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  instagram String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  availabilities Availability[]
+}
+
+model Availability {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id])
+  timeslots Timeslot[]
+}
+
+model Timeslot {
+  id             Int      @id @default(autoincrement())
+  start          DateTime
+  booked         Boolean  @default(false)
+  availabilityId Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  availability Availability @relation(fields: [availabilityId], references: [id])
+}
