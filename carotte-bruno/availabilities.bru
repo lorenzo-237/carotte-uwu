@@ -1,0 +1,16 @@
+meta {
+  name: availabilities
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/availabilities?min=2025-01-01&max=2025-01-31
+  body: none
+  auth: inherit
+}
+
+params:query {
+  min: 2025-01-01
+  max: 2025-01-31
+}

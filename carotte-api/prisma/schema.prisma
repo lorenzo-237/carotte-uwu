@@ -10,7 +10,6 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  password  String
   name      String
   instagram String
   createdAt DateTime @default(now())
@@ -18,6 +17,16 @@ model User {
 
   // Relations
   availabilities Availability[]
+  password       UserPassword[]
+}
+
+model UserPassword {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Availability {
@@ -34,7 +43,7 @@ model Availability {
 
 model Timeslot {
   id             Int      @id @default(autoincrement())
-  start          DateTime
+  start          String
   booked         Boolean  @default(false)
   availabilityId Int
   createdAt      DateTime @default(now())

@@ -1,0 +1,17 @@
+meta {
+  name: create availability
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/availabilities
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "date": "2025-01-02"
+  }
+}

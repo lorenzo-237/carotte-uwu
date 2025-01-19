@@ -1,0 +1,20 @@
+meta {
+  name: create Elia
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/tests/users
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "eliabarrot@gmail.com",
+    "name": "Elia",
+    "instagram": "@carotte.ttt",
+    "password": ""
+  }
+}

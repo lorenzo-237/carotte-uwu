@@ -6,17 +6,27 @@ import { compare } from 'bcrypt';
 import { Service } from 'typedi';
 import { sign } from 'jsonwebtoken';
 import { User } from '@/interfaces/users.interface';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 
 @Service()
 export class AuthService {
-  public users = new PrismaClient().user;
-
   public async logIn(dto: LogInDto): Promise<{ cookie: string; user: User; token: string }> {
-    const findUser = await this.users.findUnique({ where: { email: dto.email } });
+    const findUser = await prisma.user.findUnique({
+      where: { email: dto.email },
+    });
     if (!findUser) throw new HttpException(404, `User not found`);
 
-    const match = await compare(dto.password, findUser.password);
+    const findPassword = await prisma.userPassword.findUnique({
+      where: {
+        userId: findUser.id,
+      },
+    });
+
+    if (!findPassword) throw new HttpException(404, 'No Password');
+
+    const passwordValue = findPassword.password;
+
+    const match = await compare(dto.password, passwordValue);
 
     if (!match) {
       throw new HttpException(403, 'Invalid credentials');
@@ -28,8 +38,7 @@ export class AuthService {
 
     const user: User = {
       ...findUser,
-    }; // Remove password ?
-
+    };
     return { cookie, user, token };
   }
 
