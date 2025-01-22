@@ -15,7 +15,6 @@ export class TestRoute implements Routes {
   // Test is cool
   private initializeRoutes() {
     this.router.get(`${this.path}`, this.test.getCarotteMessage);
-    this.router.post(`${this.path}/users`, this.test.createElia);
     this.router.get(`${this.path}/private`, AuthMiddleware, this.test.getCarotteMessage);
   }
 }

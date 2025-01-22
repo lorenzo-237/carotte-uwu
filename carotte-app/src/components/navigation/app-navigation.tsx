@@ -9,10 +9,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { NavLink } from 'react-router';
 import { useCalendar } from '../providers/calendar-provider';
-import { Eye, EyeOff } from 'lucide-react';
+import { CalendarDays, Carrot, Eye, EyeOff, LogOut } from 'lucide-react';
+import { useAuth } from '../providers/auth-provider';
 
 function AppNavigation({ children }: { children: React.ReactNode }) {
   const { options, setOptions } = useCalendar();
+  const { user } = useAuth();
+
+  if (!user) {
+    return null;
+  }
 
   const toggleHideNavigation = () => {
     setOptions((prevOptions) => ({
@@ -32,30 +38,40 @@ function AppNavigation({ children }: { children: React.ReactNode }) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <h1 className='text-sm font-bold text-center uppercase border-b border-black w-1/3 mx-auto py-2'>
-            @Carotte.ttt
+            {user.instagram}
           </h1>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuLabel>Menu</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <NavLink to='/'>Accueil</NavLink>
+            <NavLink to='/'>
+              <Carrot />
+              Accueil
+            </NavLink>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem asChild>
-              <NavLink to='/app'>Gestion Créneaux</NavLink>
+              <NavLink to='/app'>
+                <CalendarDays />
+                Calendrier
+              </NavLink>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <button onClick={toggleHideCalendar}>Calendrier {options.hideCalendar ? <EyeOff /> : <Eye />}</button>
-            </DropdownMenuItem>{' '}
-            <DropdownMenuItem asChild>
-              <button onClick={toggleHideNavigation}>Instagram {options.hideNavigation ? <Eye /> : <EyeOff />}</button>
+              <button className='w-full' onClick={toggleHideCalendar}>
+                {options.hideCalendar ? <EyeOff /> : <Eye />} Visible
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem className='w-full' asChild>
+              <button onClick={toggleHideNavigation}>{options.hideNavigation ? <Eye /> : <EyeOff />} Instagram </button>
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Team</DropdownMenuItem>
-          <DropdownMenuItem>Subscription</DropdownMenuItem>
+          <DropdownMenuItem>
+            <LogOut />
+            Déconnexion
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       {children}

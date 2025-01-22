@@ -9,6 +9,9 @@ export default {
       elia: ['sans-serif', defaultTheme.fontFamily.sans],
     },
     extend: {
+      animation: {
+        'spin-slow': 'spin 2.5s linear infinite', // animation plus lente
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',

@@ -4,23 +4,31 @@ import { CalendarProvider } from './components/providers/calendar-provider';
 import { ThemeProvider } from './components/providers/theme-provider';
 import { TailwindIndicator } from './components/utils/TailwindIndicator';
 import HomePage from './pages/HomePage';
-import AppNavigation from './components/navigation/app-navigation';
+import ProtectedRoutes from './components/utils/protected-routes';
+import LoginPage from './pages/LoginPage';
+import UnAuthRoutes from './components/utils/unauth-routees';
+import { AuthProvider } from './components/providers/auth-provider';
 
 function App() {
   return (
-    <ThemeProvider defaultTheme='light'>
-      <CalendarProvider>
-        <div className='h-screen w-full overflow-y-auto'>
-          <AppNavigation>
+    <AuthProvider>
+      <ThemeProvider defaultTheme='light'>
+        <CalendarProvider>
+          <div className='h-screen w-full overflow-y-auto'>
             <Routes>
-              <Route path='/' element={<HomePage />} />
-              <Route path='/app' element={<CalendarApp />} />
+              <Route path='/' element={<ProtectedRoutes />}>
+                <Route index element={<HomePage />} />
+                <Route path='app' element={<CalendarApp />} />
+              </Route>
+              <Route element={<UnAuthRoutes />}>
+                <Route path='/login' element={<LoginPage />} />
+              </Route>
             </Routes>
-          </AppNavigation>
-        </div>
-      </CalendarProvider>
-      <TailwindIndicator />
-    </ThemeProvider>
+          </div>
+        </CalendarProvider>
+        <TailwindIndicator />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 

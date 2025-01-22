@@ -1,5 +1,7 @@
+import { NODE_ENV } from '@/lib/env';
+
 export function TailwindIndicator() {
-  if (import.meta.env.VITE_NODE_ENV === 'production') return null; // Vérifie l'environnement
+  if (NODE_ENV === 'production') return null; // Vérifie l'environnement
 
   return (
     <div className='fixed bottom-1 left-1 z-50 flex size-6 items-center justify-center rounded-full bg-gray-800 p-3 font-mono text-xs text-white'>

@@ -6,8 +6,8 @@ import { NextFunction, Response } from 'express';
 import { verify } from 'jsonwebtoken';
 
 const getAuthorization = req => {
-  const coockie = req.cookies['Authorization'];
-  if (coockie) return coockie;
+  const lethimcook = req.cookies['Authorization'];
+  if (lethimcook) return lethimcook;
 
   const header = req.header('Authorization');
   if (header) return header.split('Bearer ')[1];

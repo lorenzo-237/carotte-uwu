@@ -19,6 +19,8 @@ type HttpType = Partial<ServerOptions> & {
   listen: (port: string | number, callback: () => void) => void;
 };
 
+const allowedOrigins = ORIGIN ? ORIGIN.split(',') : [];
+
 export class App {
   public app: express.Application;
   public env: string;
@@ -73,7 +75,19 @@ export class App {
 
   private initializeMiddlewares() {
     this.app.use(morgan(LOG_FORMAT, { stream }));
-    this.app.use(cors({ origin: ORIGIN, credentials: CREDENTIALS }));
+
+    this.app.use(
+      cors({
+        origin: (origin, callback) => {
+          if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true); // Si l'origine est autorisée, continuer
+          } else {
+            callback(new Error('Not allowed by CORS'), false); // Sinon, refuser l'accès
+          }
+        },
+        credentials: CREDENTIALS,
+      }),
+    );
     this.app.use(hpp());
     this.app.use(helmet());
     this.app.use(compression());
