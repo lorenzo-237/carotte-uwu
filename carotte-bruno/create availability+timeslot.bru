@@ -1,0 +1,23 @@
+meta {
+  name: create availability+timeslot
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{baseUrl}}/availabilities/timeslot
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "date": "2025-01-05",
+    "timeslots": [
+      {
+      "start": "10:00",
+      "booked": false
+    }
+    ]
+  }
+}

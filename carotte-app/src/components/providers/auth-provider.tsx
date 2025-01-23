@@ -2,6 +2,7 @@ import { CAROTTE_API_URL } from '@/lib/env';
 import { User } from '@/types';
 import React, { createContext, useState, FC, useEffect } from 'react';
 import axios from 'axios';
+import { handleError } from '@/handler/errorHandler';
 
 interface AuthContextType {
   user: User | null;
@@ -27,7 +28,7 @@ export const AuthProvider: FC<{ children: React.ReactNode }> = ({ children }) =>
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         if (err.status !== 404) {
-          setError('Failed to fetch user data');
+          handleError(err, setError);
         }
       } finally {
         setTimeout(() => {
@@ -59,8 +60,18 @@ export const AuthProvider: FC<{ children: React.ReactNode }> = ({ children }) =>
     }
   };
 
-  const handleLogout = () => {
-    setUser(null);
+  const handleLogout = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await axios.get(`${CAROTTE_API_URL}/auth/logout`, { withCredentials: true });
+      setUser(null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Logout failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const value = {

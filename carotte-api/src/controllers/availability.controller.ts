@@ -2,7 +2,7 @@ import { NextFunction, Response } from 'express';
 import { Container } from 'typedi';
 import { RequestWithUser } from '@/interfaces/auth.interface';
 import { AvailabilityService } from '@/services/availability.service';
-import { CreateAvailabilityDTO, FindAvailabilitiesQUERY } from '@/dtos/availability.dto';
+import { CreateAvailabilityAndTimeslotsDTO, CreateAvailabilityDTO, FindAvailabilitiesQUERY } from '@/dtos/availability.dto';
 import { parseDateFromYYYYMMDD } from '@/lib/date';
 import { HttpException } from '@/exceptions/httpException';
 
@@ -39,6 +39,17 @@ export class AvailabilityController {
     try {
       const dto = req.body as CreateAvailabilityDTO;
       const availability = await this.service.createAvailability(req.user.id, dto);
+
+      res.status(201).json({ ...availability });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public createAvailabilityAndTimeslots = async (req: RequestWithUser, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const dto = req.body as CreateAvailabilityAndTimeslotsDTO;
+      const availability = await this.service.createAvailabilityTimeSlots(req.user.id, dto);
 
       res.status(201).json({ ...availability });
     } catch (error) {

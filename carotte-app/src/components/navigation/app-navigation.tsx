@@ -14,7 +14,7 @@ import { useAuth } from '../providers/auth-provider';
 
 function AppNavigation({ children }: { children: React.ReactNode }) {
   const { options, setOptions } = useCalendar();
-  const { user } = useAuth();
+  const { user, onLogout } = useAuth();
 
   if (!user) {
     return null;
@@ -31,6 +31,10 @@ function AppNavigation({ children }: { children: React.ReactNode }) {
       ...prevOptions,
       hideCalendar: !prevOptions.hideCalendar,
     }));
+  };
+  const logout = async () => {
+    await onLogout();
+    window.location.reload();
   };
 
   return (
@@ -68,9 +72,11 @@ function AppNavigation({ children }: { children: React.ReactNode }) {
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <LogOut />
-            Déconnexion
+          <DropdownMenuItem asChild>
+            <button onClick={logout}>
+              <LogOut />
+              Déconnexion
+            </button>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

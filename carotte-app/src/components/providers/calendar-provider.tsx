@@ -1,117 +1,189 @@
-import { createContext, useContext, useState } from 'react';
-import { DateAvailability, TimeSlot } from '../calendar/types';
+import { createContext, useContext, useEffect } from 'react';
+import { DateAvailability, TimeSlot } from '@/types';
+import { CreateTimeSlotDTO } from '../calendar/dto';
+import { formatDateToYYYYMMDD, getMonthBoundaries } from '@/lib/date-time';
+import { CalendarOptions } from '@/types';
+import { useCalendarState } from '@/hooks/useCalendarState';
+import { createAvailabilityAndTimeslot, createTimeSlot, getAvailabilities } from '@/services/api';
+import { handleError } from '@/handler/errorHandler';
 
 type CalendarProviderProps = {
   children: React.ReactNode;
 };
 
-type CalendarOptions = {
-  hideNavigation: boolean;
-  hideCalendar: boolean;
-};
-
 type CalendarProviderState = {
   month: Date;
   setMonth: React.Dispatch<React.SetStateAction<Date>>;
-  selectedDate: Date | undefined;
-  setSelectedDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
   availabilities: DateAvailability[];
-  setAvailabilities: React.Dispatch<React.SetStateAction<DateAvailability[]>>;
   options: CalendarOptions;
   setOptions: React.Dispatch<React.SetStateAction<CalendarOptions>>; // Ajout d'une fonction pour mettre à jour options
-  addTimeSlot: (slot: TimeSlot) => void;
-  pushTimeSlots: (slots: TimeSlot[]) => void;
+  addTimeSlot: (selectedDate: Date, slot: CreateTimeSlotDTO) => void;
+  pushTimeSlots: (selectedDate: Date, slots: CreateTimeSlotDTO[]) => void;
+  loading: boolean;
+  error: string | null;
 };
 
 const initialState: CalendarProviderState = {
   month: new Date(),
   setMonth: () => null,
-  selectedDate: undefined,
-  setSelectedDate: () => null,
   availabilities: [],
-  setAvailabilities: () => null,
   options: {
     hideNavigation: false,
     hideCalendar: false,
   },
-  setOptions: () => null, // Initialisation de setOptions
+  setOptions: () => null,
   addTimeSlot: () => null,
   pushTimeSlots: () => null,
+  loading: false,
+  error: null,
 };
 
 const CalendarProviderContext = createContext<CalendarProviderState>(initialState);
 
 export function CalendarProvider({ children }: CalendarProviderProps) {
-  const [month, setMonth] = useState(new Date()); // Par défaut, le mois actuel
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [availabilities, setAvailabilities] = useState<DateAvailability[]>([]);
-  const [options, setOptions] = useState<CalendarOptions>({ hideNavigation: false, hideCalendar: false }); // Gestion des options
+  const {
+    month,
+    setMonth,
+    availabilities,
+    setAvailabilities,
+    options,
+    setOptions,
+    loading,
+    setLoading,
+    error,
+    setError,
+    user,
+  } = useCalendarState();
 
-  const addTimeSlot = (currentTimeSlot: TimeSlot) => {
-    if (!selectedDate) {
-      alert("Veuillez sélectionner une date avant d'ajouter un créneau.");
-      return;
+  useEffect(() => {
+    const fetchAvailabilities = async () => {
+      const data = getMonthBoundaries(month);
+      const min = formatDateToYYYYMMDD(data.firstDayOfMonth);
+      const max = formatDateToYYYYMMDD(data.lastDayOfMonth);
+      setAvailabilities(await getAvailabilities(min, max));
+    };
+    if (user) {
+      fetchAvailabilities();
     }
+  }, [user, setAvailabilities, month]);
 
-    setAvailabilities((prev) => {
-      const index = prev.findIndex((a) => a.date.toDateString() === selectedDate.toDateString());
+  const addTimeSlot = async (selectedDate: Date, currentTimeSlot: CreateTimeSlotDTO) => {
+    try {
+      setLoading(true);
+      // Rechercher l'id de la disponibilité existante pour la date sélectionnée
+      const availability = availabilities.find((a) => a.date.toDateString() === selectedDate.toDateString());
 
-      if (index >= 0) {
-        const updated = [...prev];
+      const availabilityId = availability?.id;
 
-        updated[index] = {
-          ...updated[index],
-          times: [...updated[index].times, currentTimeSlot]
-            .filter((time, index, self) => self.findIndex((t) => t.start === time.start) === index) // Évite les doublons
-            .sort((a, b) => a.start.localeCompare(b.start)), // Trie par ordre croissant,
-        };
+      if (!availabilityId) {
+        // Si aucune disponibilité n'existe pour la date, créer avec le créneau
+        const newAvailability = await createAvailabilityAndTimeslot({
+          date: formatDateToYYYYMMDD(selectedDate),
+          timeslots: [currentTimeSlot],
+        });
 
-        return updated;
+        setAvailabilities((prev) => [
+          ...prev,
+          { id: newAvailability.id, date: selectedDate, timeslots: newAvailability.timeslots },
+        ]);
+      } else {
+        // Créer juste le créneau
+        const newTimeSlot = await createTimeSlot(availabilityId, {
+          start: currentTimeSlot.start,
+          booked: currentTimeSlot.booked,
+        });
+
+        // Mettre à jour le créneau dans le state
+        setAvailabilities((prev) =>
+          prev.map((availability) =>
+            availability.id === availabilityId
+              ? {
+                  ...availability,
+                  timeslots: [...availability.timeslots, newTimeSlot]
+                    .filter(
+                      (slot, index, self) => self.findIndex((s) => s.start === slot.start) === index // Évite les doublons
+                    )
+                    .sort((a, b) => a.start.localeCompare(b.start)), // Trie par ordre croissant
+                }
+              : availability
+          )
+        );
       }
 
-      return [...prev, { date: selectedDate, times: [currentTimeSlot] }];
-    });
+      setError(null); // Réinitialise l'erreur en cas de succès
+    } catch (err) {
+      handleError(err, setError);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const pushTimeSlots = (newTimeSlots: TimeSlot[]) => {
-    if (!selectedDate) {
-      alert("Veuillez sélectionner une date avant d'ajouter des créneaux.");
-      return;
-    }
+  const pushTimeSlots = async (selectedDate: Date, newTimeSlots: CreateTimeSlotDTO[]) => {
+    try {
+      setLoading(true);
 
-    setAvailabilities((prev) => {
-      const index = prev.findIndex((a) => a.date.toDateString() === selectedDate.toDateString());
+      // Rechercher la disponibilité pour la date sélectionnée
+      const availability = availabilities.find((a) => a.date.toDateString() === selectedDate.toDateString());
+      const availabilityId = availability?.id;
 
-      if (index >= 0) {
-        const updated = [...prev];
+      if (!availabilityId) {
+        // Si aucune disponibilité n'existe, en créer une avec les créneaux
+        const newAvailability = await createAvailabilityAndTimeslot({
+          date: formatDateToYYYYMMDD(selectedDate),
+          timeslots: newTimeSlots, // Utiliser le premier créneau comme base
+        });
 
-        updated[index] = {
-          ...updated[index],
-          times: [...updated[index].times, ...newTimeSlots]
-            .filter((time, index, self) => self.findIndex((t) => t.start === time.start) === index) // Évite les doublons
-            .sort((a, b) => a.start.localeCompare(b.start)), // Trie par ordre croissant
-        };
+        // Mettre à jour le state avec la nouvelle disponibilité
+        setAvailabilities((prev) => [
+          ...prev,
+          { id: newAvailability.id, date: selectedDate, timeslots: newAvailability.timeslots },
+        ]);
+      } else {
+        // Si une disponibilité existe, ajouter les nouveaux créneaux
+        const addedTimeSlots: TimeSlot[] = [];
 
-        return updated;
+        for (const slot of newTimeSlots) {
+          const newSlot = await createTimeSlot(availabilityId, slot);
+          addedTimeSlots.push(newSlot);
+        }
+
+        // Mettre à jour le state en ajoutant les nouveaux créneaux
+        setAvailabilities((prev) =>
+          prev.map((availability) =>
+            availability.id === availabilityId
+              ? {
+                  ...availability,
+                  timeslots: [...availability.timeslots, ...addedTimeSlots]
+                    .filter(
+                      (slot, index, self) => self.findIndex((s) => s.start === slot.start) === index // Évite les doublons
+                    )
+                    .sort((a, b) => a.start.localeCompare(b.start)), // Trie par ordre croissant
+                }
+              : availability
+          )
+        );
       }
 
-      return [...prev, { date: selectedDate, times: [...newTimeSlots] }];
-    });
+      setError(null); // Réinitialise l'erreur en cas de succès
+    } catch (err) {
+      handleError(err, setError);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <CalendarProviderContext.Provider
       value={{
         availabilities,
-        setAvailabilities,
-        selectedDate,
-        setSelectedDate,
         month,
         setMonth,
         options,
         setOptions,
         addTimeSlot,
         pushTimeSlots,
+        error,
+        loading,
       }}
     >
       {children}

@@ -39,6 +39,8 @@ model Availability {
   // Relations
   user      User       @relation(fields: [userId], references: [id])
   timeslots Timeslot[]
+
+  @@unique([userId, date])
 }
 
 model Timeslot {
@@ -51,4 +53,6 @@ model Timeslot {
 
   // Relations
   availability Availability @relation(fields: [availabilityId], references: [id])
+
+  @@unique([availabilityId, start])
 }

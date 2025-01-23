@@ -19,12 +19,12 @@ function TimeSlotsBoard({ className }: { className?: string }) {
           if (availability.date.toDateString() === date.toDateString()) {
             return {
               ...availability,
-              times: availability.times.filter((slot) => slot.start !== slotToRemove),
+              timeslots: availability.timeslots.filter((slot) => slot.start !== slotToRemove),
             };
           }
           return availability;
         })
-        .filter((availability) => availability.times.length > 0)
+        .filter((availability) => availability.timeslots.length > 0)
     );
   };
 
@@ -34,7 +34,9 @@ function TimeSlotsBoard({ className }: { className?: string }) {
         if (availability.date.toDateString() === date.toDateString()) {
           return {
             ...availability,
-            times: availability.times.map((slot) => (slot.start === slotToBook ? { ...slot, booked: true } : slot)),
+            timeslots: availability.timeslots.map((slot) =>
+              slot.start === slotToBook ? { ...slot, booked: true } : slot
+            ),
           };
         }
         return availability;
@@ -51,7 +53,7 @@ function TimeSlotsBoard({ className }: { className?: string }) {
               <h3 className='text-purple-600'>{afficherJourDeLaSemaine(availability.date)}:</h3>
             </div>
             <div className='flex gap-2 justify-end'>
-              {availability.times.map((slot, index) => (
+              {availability.timeslots.map((slot, index) => (
                 <div key={`${slot}-${index}`} className='font-semibold'>
                   {slot.booked ? (
                     <CrossOverText onClick={() => handleRemoveTimeSlot(availability.date, slot.start)}>

@@ -10,8 +10,9 @@ import TimeSlotsBoard from './TimeSlotsBoard';
 import { cn } from '@/lib/utils';
 
 export default function CalendarApp() {
-  const { availabilities, setSelectedDate, selectedDate, month, setMonth, options } = useCalendar();
+  const { availabilities, month, setMonth, options } = useCalendar();
 
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const handleDateSelect = (date: Date | undefined) => {
@@ -57,7 +58,7 @@ export default function CalendarApp() {
         )}
         <TimeSlotsBoard className={cn(options.hideCalendar && 'py-4')} />
       </div>
-      <DialogTimeSlots open={dialogOpen} onOpenChange={setDialogOpen} />
+      <DialogTimeSlots open={dialogOpen} onOpenChange={setDialogOpen} selectedDate={selectedDate} />
     </>
   );
 }

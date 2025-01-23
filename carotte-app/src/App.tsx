@@ -8,6 +8,7 @@ import ProtectedRoutes from './components/utils/protected-routes';
 import LoginPage from './pages/LoginPage';
 import UnAuthRoutes from './components/utils/unauth-routees';
 import { AuthProvider } from './components/providers/auth-provider';
+import { Toaster } from '@/components/ui/toaster';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
               </Route>
             </Routes>
           </div>
+          <Toaster />
         </CalendarProvider>
         <TailwindIndicator />
       </ThemeProvider>

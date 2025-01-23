@@ -4,33 +4,43 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DialogProps } from '@radix-ui/react-dialog';
 import { useState } from 'react';
 import { useCalendar } from '../providers/calendar-provider';
-import { TimeSlot } from './types';
 import { Separator } from '../ui/separator';
 import { Plus } from 'lucide-react';
 import { afficherTime } from '@/lib/date-time';
+import { CreateTimeSlotDTO } from './dto';
+import { useToast } from '@/hooks/use-toast';
 
-export type DialogTimeSlotsProps = DialogProps & {};
+export type DialogTimeSlotsProps = DialogProps & {
+  selectedDate?: Date;
+};
 
 const timeOptions = Array.from({ length: 11 }, (_, i) => {
   const hour = (9 + i).toString().padStart(2, '0'); // Génère 9 à 19
   return `${hour}:00`;
 });
 
-const initialTime: TimeSlot = {
+const initialTime: CreateTimeSlotDTO = {
   start: '10:00',
   booked: false,
 };
 
-const slotsToAdd: TimeSlot[] = [
+const slotsToAdd: CreateTimeSlotDTO[] = [
   { start: '10:00', booked: false },
   { start: '14:00', booked: false },
 ];
-const favorites = [slotsToAdd];
+
+const favorites = [
+  {
+    id: 1,
+    slots: slotsToAdd,
+  },
+];
 
 const DialogTimeSlots: React.FC<DialogTimeSlotsProps> = (props) => {
   const { addTimeSlot, pushTimeSlots } = useCalendar();
+  const { toast } = useToast();
 
-  const [currentTimeSlot, setCurrentTimeSlot] = useState<TimeSlot>(initialTime);
+  const [currentTimeSlot, setCurrentTimeSlot] = useState<CreateTimeSlotDTO>(initialTime);
 
   const handleStartTimeChange = (value: string) => {
     setCurrentTimeSlot({
@@ -39,16 +49,32 @@ const DialogTimeSlots: React.FC<DialogTimeSlotsProps> = (props) => {
     });
   };
 
-  const handleAddTimeSlot = () => {
-    addTimeSlot(currentTimeSlot);
+  const handleAddTimeSlot = async () => {
+    if (!props.selectedDate) {
+      alert("Veuillez sélectionner une date avant d'ajouter un créneau.");
+      return;
+    }
 
-    if (props.onOpenChange) {
-      props.onOpenChange(false);
+    try {
+      await addTimeSlot(props.selectedDate, currentTimeSlot);
+
+      if (props.onOpenChange) {
+        props.onOpenChange(false);
+      }
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: '' + error,
+      });
     }
   };
 
-  const handleAddFavoritesSlots = (slots: TimeSlot[]) => {
-    pushTimeSlots(slots);
+  const handleAddFavoritesSlots = (slots: CreateTimeSlotDTO[]) => {
+    if (!props.selectedDate) {
+      alert("Veuillez sélectionner une date avant d'ajouter des créneaux.");
+      return;
+    }
+    pushTimeSlots(props.selectedDate, slots);
     if (props.onOpenChange) {
       props.onOpenChange(false);
     }
@@ -80,10 +106,12 @@ const DialogTimeSlots: React.FC<DialogTimeSlotsProps> = (props) => {
           <Separator />
           <h4 className='text-normal font-semibold'>Créneaux préférés</h4>
 
-          {favorites.map((slots) => (
-            <div className='flex items-center gap-2'>
-              {slots.map((slot) => (
-                <span className='font-semibold text-purple-700'>{afficherTime(slot.start)}</span>
+          {favorites.map((fav) => (
+            <div key={fav.id} className='flex items-center gap-2'>
+              {fav.slots.map((slot) => (
+                <span key={slot.start} className='font-semibold text-purple-700'>
+                  {afficherTime(slot.start)}
+                </span>
               ))}
               <Button
                 size='icon'

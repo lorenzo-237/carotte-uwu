@@ -6,3 +6,20 @@ export type User = {
   createdAt: string;
   updatedAT: string;
 };
+
+export type CalendarOptions = {
+  hideNavigation: boolean;
+  hideCalendar: boolean;
+};
+
+export type TimeSlot = {
+  id: number;
+  start: string;
+  booked: boolean;
+};
+
+export type DateAvailability = {
+  id: number;
+  date: Date;
+  timeslots: TimeSlot[];
+};

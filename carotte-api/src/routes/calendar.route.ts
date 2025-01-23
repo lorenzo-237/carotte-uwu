@@ -3,7 +3,7 @@ import { Routes } from '@interfaces/routes.interface';
 import { AuthMiddleware } from '@/middlewares/auth.middleware';
 import { AvailabilityController } from '@/controllers/availability.controller';
 import { ValidationMiddleware } from '@/middlewares/validation.middleware';
-import { CreateAvailabilityDTO } from '@/dtos/availability.dto';
+import { CreateAvailabilityAndTimeslotsDTO, CreateAvailabilityDTO } from '@/dtos/availability.dto';
 import { TimeslotController } from '@/controllers/timeslot.controller';
 import { CreateTimeslotDTO, UpdateTimeslotDTO } from '@/dtos/timeslot.dto';
 
@@ -22,6 +22,12 @@ export class CalendarRoute implements Routes {
   private initializeAvailabilitiesRoutes() {
     this.router.get(`${this.pathAvailability}`, AuthMiddleware, this.availability.getAvailabilities);
     this.router.post(`${this.pathAvailability}`, AuthMiddleware, ValidationMiddleware(CreateAvailabilityDTO), this.availability.createAvailability);
+    this.router.post(
+      `${this.pathAvailability}/timeslot`,
+      AuthMiddleware,
+      ValidationMiddleware(CreateAvailabilityAndTimeslotsDTO),
+      this.availability.createAvailabilityAndTimeslots,
+    );
     this.router.delete(`${this.pathAvailability}/:id`, AuthMiddleware, this.availability.deleteAvailability);
   }
 

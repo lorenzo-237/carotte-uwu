@@ -17,6 +17,12 @@ export class TimeslotService {
       throw new Error('Availability not found');
     }
 
+    const find = await this.findByAvailabilityAndStart(availabilityId, start);
+
+    if (find) {
+      throw new Error('Le créneau existe déjà.');
+    }
+
     // Créer le Timeslot
     return prisma.timeslot.create({
       data: {
@@ -47,8 +53,6 @@ export class TimeslotService {
   }
 
   async deleteTimeslot(timeslotId: number, userId: number) {
-    console.log(timeslotId);
-    console.log(userId);
     const findTimeslot = await prisma.timeslot.findUnique({
       where: {
         id: timeslotId,
@@ -69,6 +73,17 @@ export class TimeslotService {
     await prisma.timeslot.delete({
       where: {
         id: timeslotId,
+      },
+    });
+  }
+
+  public findByAvailabilityAndStart(availabilityId: number, start: string) {
+    return prisma.timeslot.findUnique({
+      where: {
+        availabilityId_start: {
+          availabilityId,
+          start,
+        },
       },
     });
   }

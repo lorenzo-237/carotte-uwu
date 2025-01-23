@@ -89,7 +89,20 @@ export class App {
       }),
     );
     this.app.use(hpp());
-    this.app.use(helmet());
+    this.app.use(
+      helmet({
+        contentSecurityPolicy: {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"], // Permettre les scripts inline si nécessaire
+            styleSrc: ["'self'", "'unsafe-inline'", 'http:'], // Permettre les styles inline et les sources HTTP
+            imgSrc: ["'self'", 'data:', 'http:'], // Permettre les images de votre propre domaine, les data URIs et les sources HTTP
+            fontSrc: ["'self'"], // Permettre les polices de votre propre domaine
+          },
+        },
+        crossOriginResourcePolicy: { policy: 'cross-origin' }, // Ajuster la politique CORP
+      }),
+    );
     this.app.use(compression());
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
