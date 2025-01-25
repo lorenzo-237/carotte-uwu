@@ -10,6 +10,7 @@ export type User = {
 export type CalendarOptions = {
   hideNavigation: boolean;
   hideCalendar: boolean;
+  hidePastDays: boolean;
 };
 
 export type TimeSlot = {

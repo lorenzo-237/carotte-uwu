@@ -70,10 +70,30 @@ export class TimeslotService {
       throw new HttpException(401, 'Impossible');
     }
 
-    await prisma.timeslot.delete({
-      where: {
-        id: timeslotId,
-      },
+    const availabilityId = findTimeslot.availabilityId;
+
+    await prisma.$transaction(async prismaTransaction => {
+      await prismaTransaction.timeslot.delete({
+        where: {
+          id: timeslotId,
+        },
+      });
+
+      // Vérifiez si des timeslots sont encore associés à l'availability
+      const remainingTimeslots = await prismaTransaction.timeslot.findMany({
+        where: {
+          availabilityId: availabilityId,
+        },
+      });
+
+      // Si aucun timeslot n'est associé, supprimez l'availability
+      if (remainingTimeslots.length === 0) {
+        await prismaTransaction.availability.delete({
+          where: {
+            id: availabilityId,
+          },
+        });
+      }
     });
   }
 

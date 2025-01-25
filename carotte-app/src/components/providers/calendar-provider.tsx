@@ -4,7 +4,13 @@ import { CreateTimeSlotDTO } from '../calendar/dto';
 import { formatDateToYYYYMMDD, getMonthBoundaries } from '@/lib/date-time';
 import { CalendarOptions } from '@/types';
 import { useCalendarState } from '@/hooks/useCalendarState';
-import { createAvailabilityAndTimeslot, createTimeSlot, getAvailabilities } from '@/services/api';
+import {
+  createAvailabilityAndTimeslot,
+  createTimeSlot,
+  deleteTimeSlot,
+  getAvailabilities,
+  updateTimeSlot,
+} from '@/services/api';
 import { handleError } from '@/handler/errorHandler';
 
 type CalendarProviderProps = {
@@ -19,6 +25,8 @@ type CalendarProviderState = {
   setOptions: React.Dispatch<React.SetStateAction<CalendarOptions>>; // Ajout d'une fonction pour mettre à jour options
   addTimeSlot: (selectedDate: Date, slot: CreateTimeSlotDTO) => void;
   pushTimeSlots: (selectedDate: Date, slots: CreateTimeSlotDTO[]) => void;
+  bookTimeslot: (slotId: number) => void;
+  removeTimeslot: (slotId: number) => void;
   loading: boolean;
   error: string | null;
 };
@@ -28,12 +36,15 @@ const initialState: CalendarProviderState = {
   setMonth: () => null,
   availabilities: [],
   options: {
+    hidePastDays: false,
     hideNavigation: false,
     hideCalendar: false,
   },
   setOptions: () => null,
   addTimeSlot: () => null,
   pushTimeSlots: () => null,
+  bookTimeslot: () => null,
+  removeTimeslot: () => null,
   loading: false,
   error: null,
 };
@@ -172,6 +183,43 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
     }
   };
 
+  const bookTimeslot = async (slotId: number) => {
+    try {
+      const dto = { booked: true };
+      await updateTimeSlot(slotId, dto);
+
+      setAvailabilities((prev) =>
+        prev.map((prevAvailability) => {
+          return {
+            ...prevAvailability,
+            timeslots: prevAvailability.timeslots.map((slot) => (slot.id === slotId ? { ...slot, ...dto } : slot)),
+          };
+        })
+      );
+    } catch (err) {
+      handleError(err, setError);
+    }
+  };
+
+  const removeTimeslot = async (slotId: number) => {
+    try {
+      await deleteTimeSlot(slotId);
+
+      setAvailabilities((prev) =>
+        prev
+          .map((prevAvailability) => {
+            return {
+              ...prevAvailability,
+              timeslots: prevAvailability.timeslots.filter((slot) => slot.id !== slotId),
+            };
+          })
+          .filter((prevAvailability) => prevAvailability.timeslots.length > 0)
+      );
+    } catch (err) {
+      handleError(err, setError);
+    }
+  };
+
   return (
     <CalendarProviderContext.Provider
       value={{
@@ -182,6 +230,8 @@ export function CalendarProvider({ children }: CalendarProviderProps) {
         setOptions,
         addTimeSlot,
         pushTimeSlots,
+        bookTimeslot,
+        removeTimeslot,
         error,
         loading,
       }}

@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { CAROTTE_API_URL } from '@/lib/env';
 import { DateAvailability, TimeSlot } from '@/types';
-import { CreateAvailabilityDTO, CreateTimeSlotDTO } from '@/components/calendar/dto';
+import { CreateAvailabilityDTO, CreateTimeSlotDTO, UpdateTimeSlotDTO } from '@/components/calendar/dto';
 
 export const createTimeSlot = async (id: number, dto: CreateTimeSlotDTO): Promise<TimeSlot> => {
   const response = await axios.post(
@@ -11,6 +11,16 @@ export const createTimeSlot = async (id: number, dto: CreateTimeSlotDTO): Promis
     { withCredentials: true }
   );
   return response.data as TimeSlot;
+};
+
+export const updateTimeSlot = async (id: number, dto: UpdateTimeSlotDTO): Promise<TimeSlot> => {
+  const response = await axios.put(`${CAROTTE_API_URL}/timeslots/${id}`, dto, { withCredentials: true });
+  return response.data as TimeSlot;
+};
+
+export const deleteTimeSlot = async (id: number): Promise<number> => {
+  const response = await axios.delete(`${CAROTTE_API_URL}/timeslots/${id}`, { withCredentials: true });
+  return response.status; // 200 if success
 };
 
 export const createAvailabilityAndTimeslot = async (dto: CreateAvailabilityDTO): Promise<DateAvailability> => {

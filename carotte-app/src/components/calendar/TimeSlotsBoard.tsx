@@ -5,48 +5,24 @@ import { cn } from '@/lib/utils';
 import CrossOverText from './CrossOverText';
 
 function TimeSlotsBoard({ className }: { className?: string }) {
-  const { availabilities, setAvailabilities } = useCalendar();
+  const { availabilities, bookTimeslot, removeTimeslot, options } = useCalendar();
 
   const sortedAvailabilities = useMemo(
     () => [...availabilities].sort((a, b) => a.date.getTime() - b.date.getTime()),
     [availabilities]
   );
 
-  const handleRemoveTimeSlot = (date: Date, slotToRemove: string) => {
-    setAvailabilities((prev) =>
-      prev
-        .map((availability) => {
-          if (availability.date.toDateString() === date.toDateString()) {
-            return {
-              ...availability,
-              timeslots: availability.timeslots.filter((slot) => slot.start !== slotToRemove),
-            };
-          }
-          return availability;
-        })
-        .filter((availability) => availability.timeslots.length > 0)
-    );
-  };
-
-  const handleBookedTimeSlot = (date: Date, slotToBook: string) => {
-    setAvailabilities((prev) =>
-      prev.map((availability) => {
-        if (availability.date.toDateString() === date.toDateString()) {
-          return {
-            ...availability,
-            timeslots: availability.timeslots.map((slot) =>
-              slot.start === slotToBook ? { ...slot, booked: true } : slot
-            ),
-          };
-        }
-        return availability;
-      })
-    );
-  };
+  const filteredAvailabilities = useMemo(
+    () =>
+      sortedAvailabilities.filter(
+        (availability) => !options.hidePastDays || availability.date.getTime() >= new Date().getTime()
+      ),
+    [sortedAvailabilities, options]
+  );
 
   return (
     <div className={cn('w-full max-w-xs text-lg', className)}>
-      {sortedAvailabilities.map((availability) => (
+      {filteredAvailabilities.map((availability) => (
         <div key={availability.date.toISOString()} className=''>
           <div className='grid grid-cols-2'>
             <div className=''>
@@ -56,19 +32,13 @@ function TimeSlotsBoard({ className }: { className?: string }) {
               {availability.timeslots.map((slot, index) => (
                 <div key={`${slot}-${index}`} className='font-semibold'>
                   {slot.booked ? (
-                    <CrossOverText onClick={() => handleRemoveTimeSlot(availability.date, slot.start)}>
-                      <button
-                        onClick={() => handleRemoveTimeSlot(availability.date, slot.start)}
-                        className='text-purple-700 hover:text-purple-900'
-                      >
+                    <CrossOverText onClick={() => removeTimeslot(slot.id)}>
+                      <button onClick={() => removeTimeslot(slot.id)} className='text-purple-700 hover:text-purple-900'>
                         {afficherTime(slot.start)}
                       </button>
                     </CrossOverText>
                   ) : (
-                    <button
-                      onClick={() => handleBookedTimeSlot(availability.date, slot.start)}
-                      className='text-purple-700 hover:text-purple-900'
-                    >
+                    <button onClick={() => bookTimeslot(slot.id)} className='text-purple-700 hover:text-purple-900'>
                       {afficherTime(slot.start)}
                     </button>
                   )}

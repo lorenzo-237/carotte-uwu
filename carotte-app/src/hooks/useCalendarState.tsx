@@ -7,7 +7,11 @@ export const useCalendarState = () => {
 
   const [month, setMonth] = useState(new Date());
   const [availabilities, setAvailabilities] = useState<DateAvailability[]>([]);
-  const [options, setOptions] = useState<CalendarOptions>({ hideNavigation: false, hideCalendar: false });
+  const [options, setOptions] = useState<CalendarOptions>({
+    hideNavigation: false,
+    hideCalendar: false,
+    hidePastDays: false,
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

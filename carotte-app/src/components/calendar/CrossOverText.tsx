@@ -17,7 +17,8 @@ const CrossOverText = ({
 
       {/* La croix rouge */}
       <span
-        className='absolute inset-0 flex justify-center items-center text-red-500 text-3xl opacity-90 cursor-pointer animate-shake-rotate'
+        // animate-shake-rotate
+        className='absolute inset-0 flex justify-center items-center text-red-500 text-3xl opacity-90 cursor-pointer '
         onClick={onClick}
       >
         <X className='h-10 w-10' />

@@ -6,7 +6,6 @@ import { CreateUserDTO } from '@/dtos/user.dto';
 @Service()
 export class UserService {
   async createUser(data: CreateUserDTO): Promise<void> {
-    console.log(data);
     const { email, name, instagram, password } = data;
 
     // Vérifier si un utilisateur avec cet email existe déjà

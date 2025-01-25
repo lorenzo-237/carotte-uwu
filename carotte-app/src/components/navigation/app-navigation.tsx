@@ -26,6 +26,12 @@ function AppNavigation({ children }: { children: React.ReactNode }) {
       hideNavigation: !prevOptions.hideNavigation,
     }));
   };
+  const toggleHidePastDay = () => {
+    setOptions((prevOptions) => ({
+      ...prevOptions,
+      hidePastDays: !prevOptions.hidePastDays,
+    }));
+  };
   const toggleHideCalendar = () => {
     setOptions((prevOptions) => ({
       ...prevOptions,
@@ -65,6 +71,11 @@ function AppNavigation({ children }: { children: React.ReactNode }) {
             <DropdownMenuItem asChild>
               <button className='w-full' onClick={toggleHideCalendar}>
                 {options.hideCalendar ? <EyeOff /> : <Eye />} Visible
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button className='w-full' onClick={toggleHidePastDay}>
+                {options.hidePastDays ? <EyeOff /> : <Eye />} Dates passées
               </button>
             </DropdownMenuItem>
             <DropdownMenuItem className='w-full' asChild>

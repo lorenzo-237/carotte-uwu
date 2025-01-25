@@ -3,6 +3,10 @@ export type CreateTimeSlotDTO = {
   booked: boolean;
 };
 
+export type UpdateTimeSlotDTO = {
+  booked: boolean;
+};
+
 export type CreateAvailabilityDTO = {
   date: string;
   timeslots: CreateTimeSlotDTO[];
